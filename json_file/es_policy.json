@@ -13,7 +13,7 @@
       "Action": [
         "es:*"
       ],
-      "Resource": "arn:aws:es:eu-west-1:123456789012:domain/es-demo/*"
+      "Resource": "arn:aws:es:eu-west-1:172873956760:domain/es-demo/*"
     }
   ]
 }

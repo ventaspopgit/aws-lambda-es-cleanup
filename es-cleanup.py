@@ -109,7 +109,7 @@ class ES_Cleanup(object):
 
             req = AWSRequest(
                 method=method,
-                url="https://{}{}".format(
+                url="http://{}{}".format(
                     self.cfg["es_endpoint"], quote(path)),
                 data=json.dumps(payload),
                 params={"format": "json"},
@@ -174,7 +174,10 @@ def lambda_handler(event, context):
         idx_split = index["index"].rsplit("-",
             1 + es.cfg["index_format"].count("-"))
         idx_name = idx_split[0]
-        idx_date = '-'.join(word for word in idx_split[1:])
+        if len(idx_split) == 3:
+            idx_date = idx_split[2]
+        else:
+            idx_date = idx_split[1]
 
         if idx_name in es.cfg["index"] or "all" in es.cfg["index"]:
 
@@ -185,14 +188,14 @@ def lambda_handler(event, context):
 
 if __name__ == '__main__':
     event = {
-        'account': '123456789012',
-        'region': 'eu-west-1',
+        'account': '172873956760',
+        'region': 'us-east-2',
         'detail': {},
         'detail-type': 'Scheduled Event',
         'source': 'aws.events',
         'time': '1970-01-01T00:00:00Z',
         'id': 'cdc73f9d-aea9-11e3-9d5a-835b769c0d9c',
         'resources':
-        ['arn:aws:events:us-east-1:123456789012:rule/my-schedule']
+        ['arn:aws:events:us-east-1:172873956760:rule/elk-cleanup-schedule']
     }
     lambda_handler(event, "")

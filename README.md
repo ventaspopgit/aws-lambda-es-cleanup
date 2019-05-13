@@ -17,13 +17,13 @@ This AWS Lambda function allows you to delete the old Elasticsearch indexes usin
 Clone your repository
 
 ```bash
-$ git clone git@github.com:cloudreach/aws-lambda-es-cleanup.git
+$ git clone git@github.com:ventaspopgit/aws-lambda-es-cleanup.git
 $ cd aws-lambda-es-cleanup/
 ```
 
 Configure in a proper way the IAM policy inside `json_file/es_policy.json` and `json_file/trust_policy.json`
 
-Create the IAM Role
+**Create the IAM Role**
 
 ```bash
 $ aws iam create-role --role-name es-cleanup-lambda \
@@ -38,7 +38,7 @@ $ aws iam put-role-policy --role-name es-cleanup-lambda \
 ```
 
 
-if your lambda is running inside the VPC also attach the these policies
+if your ES is running inside a VPC also attach the these policies
 
 
 ```
@@ -59,15 +59,15 @@ $ zip es-cleanup-lambda.zip es-cleanup.py
 Using awscli you can create your AWS function and set the proper IAM role with the right Account ID
 
 ```bash
-$ export AWS_DEFAULT_REGION=eu-west-1
-$ ESENDPOINT="search-es-demo-zveqnhnhjqm5flntemgmx5iuya.eu-west-1.es.amazonaws.com" #ES endpoint
+$ export AWS_DEFAULT_REGION=us-east-2
+$ ESENDPOINT="/vpc-elk-kv3oevcwwieg4qtbzope62yjya.us-east-2.es.amazonaws.com" #ES endpoint
 
 $ aws lambda create-function \
 	--function-name es-cleanup-lambda \
 	--environment Variables={es_endpoint=$ESENDPOINT} \
 	--zip-file fileb://es-cleanup-lambda.zip \
 	--description "Elastichsearch Index Cleanup" \
-	--role arn:aws:iam::123456789012:role/es-cleanup-lambda \
+	--role arn:aws:iam::172873956760:role/es-cleanup-lambda \
 	--handler es-cleanup.lambda_handler \
 	--runtime python3.6 \
 	--timeout 180
@@ -81,40 +81,40 @@ $ aws lambda create-function \
 	--function-name es-cleanup-lambda \
 	--zip-file fileb://es-cleanup-lambda.zip \
 	--description "Elastichsearch Index Cleanup" \
-	--role arn:aws:iam::123456789012:role/es-cleanup-lambda \
+	--role arn:aws:iam::172873956760:role/es-cleanup-lambda \
 	--handler es-cleanup.lambda_handler \
 	--runtime python3.6 \
 	--timeout 180
 ```
 
 ### Lambda invoke with parameters
-is it possible to override the default behaviour passing specific payload
+It is possible to override the default behaviour passing specific payload
 
 ```bash
 $ aws lambda invoke
  --function-name es-cleanup-lambda \
  outfile --payload \
- '{"es_endpoint":"search-es-demo-zveqnhnhjqm5flntemgmx5iuya.eu-west-1.es.amazonaws.com"}'
+ '{"es_endpoint":"/vpc-elk-kv3oevcwwieg4qtbzope62yjya.us-east-2.es.amazonaws.com"}'
 ```
 
 Create your AWS Cloudwatch rule:
 
 ```bash
 $ aws events put-rule \
-	--name my-scheduled-rule \
-	--schedule-expression 'cron(0 1 * * ? *)'
+	--name elk-cleanup-scheduled-rule \
+	--schedule-expression 'cron(0 4 ? * SUN *)'
 
 
 $ aws lambda add-permission \
 	--function-name es-cleanup-lambda \
-	--statement-id my-scheduled-event \
+	--statement-id elk-cleanup-scheduled-event \
 	--action 'lambda:InvokeFunction' \
 	--principal events.amazonaws.com \
-	--source-arn arn:aws:events:eu-west-1:123456789012:rule/my-scheduled-rule    
+	--source-arn arn:aws:events:us-east-1:172873956760:rule/elk-cleanup-scheduled-rule    
 
 
 $ aws events put-targets \
-	--rule my-scheduled-rule \
+	--rule elk-cleanup-scheduled-rule \
 	--targets file://json_file/cloudwatch-target.json
 ```
 
